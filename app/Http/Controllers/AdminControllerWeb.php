@@ -11,7 +11,7 @@ class AdminControllerWeb extends Controller
 {
     public function indexRoles()
     {
-        $roles = Role::with('permissions')->get();
+        $roles = Role::all();
         return view('admin.roles.index', compact('roles'));
     }
 
@@ -28,20 +28,22 @@ class AdminControllerWeb extends Controller
             'permissions' => 'array',
         ]);
 
-        $role = Role::create(['name' => $request->name]);
+        // Создаём роль
+    $role = Role::create(['name' => $request->name]);
 
-        if ($request->permissions) {
-            $role->syncPermissions($request->permissions);
-        }
+    // Назначаем привилегии, если они указаны
+    if ($request->has('permissions')) {
+        $role->givePermissionTo($request->permissions);
+    }
 
-        return redirect()->route('admin.roles.index')->with('success', 'Роль успешно создана.');
+    // Редирект на список ролей с уведомлением
+    return redirect()->route('admin.roles.index')->with('success', 'Роль успешно создана.');
     }
 
     public function editRole($id)
     {
         $role = Role::findOrFail($id);
         $permissions = Permission::all();
-
         return view('admin.roles.edit', compact('role', 'permissions'));
     }
 
@@ -56,7 +58,8 @@ class AdminControllerWeb extends Controller
         $role->update(['name' => $request->name]);
         $role->syncPermissions($request->permissions);
 
-        return redirect()->route('admin.roles.index')->with('success', 'Роль успешно обновлена.');
+        return redirect()->route('admin.roles.index')
+            ->with('success', 'Роль успешно обновлена.');
     }
 
     public function destroyRole($id)
@@ -64,6 +67,7 @@ class AdminControllerWeb extends Controller
         $role = Role::findOrFail($id);
         $role->delete();
 
-        return redirect()->route('admin.roles.index')->with('success', 'Роль успешно удалена.');
+        return redirect()->route('admin.roles.index')
+            ->with('success', 'Роль успешно удалена.');
     }
 }
