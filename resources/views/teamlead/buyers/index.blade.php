@@ -23,6 +23,7 @@
                                 <th class="border border-gray-300 px-4 py-2">ID</th>
                                 <th class="border border-gray-300 px-4 py-2">Имя</th>
                                 <th class="border border-gray-300 px-4 py-2">Email</th>
+                                <th class="border border-gray-300 px-4 py-2">Назначивший тимлид</th>
                                 <th class="border border-gray-300 px-4 py-2">Действия</th>
                             </tr>
                         </thead>
@@ -32,6 +33,9 @@
                                     <td class="border border-gray-300 px-4 py-2">{{ $buyer->id }}</td>
                                     <td class="border border-gray-300 px-4 py-2">{{ $buyer->name }}</td>
                                     <td class="border border-gray-300 px-4 py-2">{{ $buyer->email }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">
+                                        {{ $buyer->assignedBy ? $buyer->assignedBy->name : 'Не назначен' }}
+                                    </td>
                                     <td class="border border-gray-300 px-4 py-2">
                                         <form action="{{ route('teamlead.buyers.remove', $buyer->id) }}" method="POST">
                                             @csrf
@@ -43,45 +47,52 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center border border-gray-300 px-4 py-2">Нет пользователей с ролью "Байер".</td>
+                                    <td colspan="5" class="text-center border border-gray-300 px-4 py-2">Нет пользователей с ролью "Байер".</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
 
+                    <!-- Пагинация -->
+                    <div class="mt-4">
+                        {{ $buyers->links() }}
+                    </div>
+
                     <!-- Список пользователей без роли "buyer" -->
-                    <h1 class="text-lg font-bold mb-4">Пользователи без роли "Байер"</h1>
-                    <table class="table-auto w-full border-collapse border border-gray-300">
-                        <thead>
-                            <tr>
-                                <th class="border border-gray-300 px-4 py-2">ID</th>
-                                <th class="border border-gray-300 px-4 py-2">Имя</th>
-                                <th class="border border-gray-300 px-4 py-2">Email</th>
-                                <th class="border border-gray-300 px-4 py-2">Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($usersWithoutBuyerRole as $user)
+                    @if(auth()->user()->hasRole('team_lead'))
+                        <h1 class="text-lg font-bold mb-4">Пользователи без роли "Байер"</h1>
+                        <table class="table-auto w-full border-collapse border border-gray-300">
+                            <thead>
                                 <tr>
-                                    <td class="border border-gray-300 px-4 py-2">{{ $user->id }}</td>
-                                    <td class="border border-gray-300 px-4 py-2">{{ $user->name }}</td>
-                                    <td class="border border-gray-300 px-4 py-2">{{ $user->email }}</td>
-                                    <td class="border border-gray-300 px-4 py-2">
-                                        <form action="{{ route('teamlead.buyers.assign', $user->id) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" class="btn btn-primary">
-                                                Назначить роль
-                                            </button>
-                                        </form>
-                                    </td>
+                                    <th class="border border-gray-300 px-4 py-2">ID</th>
+                                    <th class="border border-gray-300 px-4 py-2">Имя</th>
+                                    <th class="border border-gray-300 px-4 py-2">Email</th>
+                                    <th class="border border-gray-300 px-4 py-2">Действия</th>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="text-center border border-gray-300 px-4 py-2">Нет доступных пользователей для назначения роли "Байер".</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @forelse($usersWithoutBuyerRole as $user)
+                                    <tr>
+                                        <td class="border border-gray-300 px-4 py-2">{{ $user->id }}</td>
+                                        <td class="border border-gray-300 px-4 py-2">{{ $user->name }}</td>
+                                        <td class="border border-gray-300 px-4 py-2">{{ $user->email }}</td>
+                                        <td class="border border-gray-300 px-4 py-2">
+                                            <form action="{{ route('teamlead.buyers.assign', $user->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-primary">
+                                                    Назначить роль
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="text-center border border-gray-300 px-4 py-2">Нет доступных пользователей для назначения роли "Байер".</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    @endif
 
                 </div>
             </div>

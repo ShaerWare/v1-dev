@@ -32,6 +32,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('roles/{id}/edit', [AdminControllerWeb::class, 'editRole'])->name('roles.edit');
     Route::put('roles/{id}', [AdminControllerWeb::class, 'updateRole'])->name('roles.update');
     Route::delete('roles/{id}', [AdminControllerWeb::class, 'destroyRole'])->name('roles.destroy');
+    Route::get('users', [AdminControllerWeb::class, 'indexUsers'])->name('users.index');
+    Route::post('users/{userId}/assign-role', [AdminControllerWeb::class, 'assignRole'])->name('users.assignRole');
+    Route::post('users/{userId}/remove-role/{roleName}', [AdminControllerWeb::class, 'removeRole'])->name('users.removeRole');
+
 });
 
 // TeamLead Routes

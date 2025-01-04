@@ -12,17 +12,28 @@ class TeamLeadControllerWeb extends Controller
      * Отобразить список пользователей с ролью "buyer".
      */
     public function indexBuyers()
-    {
-        // Получаем пользователей с ролью "buyer"
-        $buyers = User::role('buyer')->get();
+{
+    if (auth()->user()->hasRole('admin')) {
+        // Администратор видит всех байеров
+        $buyers = User::role('buyer')->with('assignedBy')->paginate(10);
+    } else {
+        // Тимлид видит только своих байеров
+        $buyers = User::role('buyer')
+            ->where('assigned_by', auth()->id())
+            ->with('assignedBy')
+            ->paginate(10);
+    }
 
-        // Отображаем пользователей без роли "buyer" (для назначения роли)
+    // Отображаем пользователей без роли "buyer" только для тимлида
+    $usersWithoutBuyerRole = [];
+    if (auth()->user()->hasRole('team_lead')) {
         $usersWithoutBuyerRole = User::whereDoesntHave('roles', function ($query) {
             $query->where('name', 'buyer');
         })->get();
-
-        return view('teamlead.buyers.index', compact('buyers', 'usersWithoutBuyerRole'));
     }
+
+    return view('teamlead.buyers.index', compact('buyers', 'usersWithoutBuyerRole'));
+}
 
     /**
      * Назначить роль "buyer" пользователю.

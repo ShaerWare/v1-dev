@@ -47,4 +47,13 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function assignedBy()
+    {
+        return $this->belongsTo(User::class, 'assigned_by');
+    }
+
+    public function assignedBuyers()
+    {
+        return $this->hasMany(User::class, 'assigned_by');
+    }
 }

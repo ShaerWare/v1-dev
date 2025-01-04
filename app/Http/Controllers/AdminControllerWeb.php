@@ -9,6 +9,35 @@ use App\Models\User;
 
 class AdminControllerWeb extends Controller
 {
+
+    public function indexUsers()
+    {
+        // Получить всех пользователей с их ролями
+        $users = User::with('roles')->paginate(10); // Пагинация для удобства
+        $roles = Role::all(); // Получить все доступные роли
+
+        return view('admin.users.index', compact('users', 'roles'));
+    }
+
+    public function assignRole(Request $request, $userId)
+    {
+        $request->validate([
+            'role' => 'required|exists:roles,name',
+        ]);
+
+        $user = User::findOrFail($userId);
+        $user->assignRole($request->role);
+
+        return redirect()->route('admin.users.index')->with('success', 'Роль успешно назначена.');
+    }
+
+    public function removeRole($userId, $roleName)
+    {
+        $user = User::findOrFail($userId);
+        $user->removeRole($roleName);
+
+        return redirect()->route('admin.users.index')->with('success', 'Роль успешно удалена.');
+    }
     public function indexRoles()
     {
         $roles = Role::all();
@@ -29,15 +58,15 @@ class AdminControllerWeb extends Controller
         ]);
 
         // Создаём роль
-    $role = Role::create(['name' => $request->name]);
+        $role = Role::create(['name' => $request->name]);
 
-    // Назначаем привилегии, если они указаны
-    if ($request->has('permissions')) {
-        $role->givePermissionTo($request->permissions);
-    }
+        // Назначаем привилегии, если они указаны
+        if ($request->has('permissions')) {
+            $role->givePermissionTo($request->permissions);
+        }
 
-    // Редирект на список ролей с уведомлением
-    return redirect()->route('admin.roles.index')->with('success', 'Роль успешно создана.');
+        // Редирект на список ролей с уведомлением
+        return redirect()->route('admin.roles.index')->with('success', 'Роль успешно создана.');
     }
 
     public function editRole($id)
