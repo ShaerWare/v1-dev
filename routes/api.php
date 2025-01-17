@@ -8,6 +8,18 @@ use App\Http\Controllers\TeamLeadController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\LoginController;
+use Laravel\Passport\Http\Controllers\AccessTokenController;
+use Laravel\Passport\Http\Controllers\AuthorizationController;
+use Laravel\Passport\Http\Controllers\TransientTokenController;
+
+Route::post('/oauth/token', [AccessTokenController::class, 'issueToken'])
+    ->name('passport.token');
+
+Route::get('/oauth/authorize', [AuthorizationController::class, 'authorize'])
+    ->name('passport.authorizations');
+
+Route::post('/oauth/token/refresh', [TransientTokenController::class, 'refresh'])
+    ->name('passport.token.refresh');
 
 Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/login', [LoginController::class, 'login']);

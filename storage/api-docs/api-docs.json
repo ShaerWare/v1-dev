@@ -119,12 +119,12 @@
                                 "properties": {
                                     "email": {
                                         "type": "string",
-                                        "example": "admin@gmail.com"
+                                        "example": "hr@gmail.com"
                                     },
                                     "password": {
                                         "type": "string",
                                         "format": "password",
-                                        "example": "123456"
+                                        "example": "hr@gmav5%il.co7m!hfr56azl_c4m"
                                     }
                                 },
                                 "type": "object"

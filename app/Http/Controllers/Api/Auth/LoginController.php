@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Laravel\Sanctum\PersonalAccessToken;
+use Illuminate\Foundation\Auth\User;
 
 /**
  * @OA\Info(
@@ -26,8 +28,8 @@ class LoginController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"email", "password"},
-     *             @OA\Property(property="email", type="string", example="admin@gmail.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="123456")
+     *             @OA\Property(property="email", type="string", example="hr@gmail.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="hr@gmav5%il.co7m!hfr56azl_c4m")
      *         )
      *     ),
      *     @OA\Response(
@@ -68,7 +70,7 @@ class LoginController extends Controller
         $user = Auth::user();
 
         // Генерация токена через Passport
-        $token = $user->createToken('Personal Access Token')->accessToken;
+        $token = $user->createToken('authToken')->accessToken;
 
         // Ответ с токеном и данными пользователя
         return response()->json([
