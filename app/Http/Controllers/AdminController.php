@@ -7,14 +7,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Models\User;
 
-/**
- * @OA\Info(
- *     title="Role and Permission Management API",
- *     version="1.0.0",
- *     description="API для управления ролями и привилегиями"
- * )
- * @OA\Tag(name="Admin", description="Управление ролями и привилегиями")
- */
+
 class AdminController extends Controller
 {
     /*public function __construct()

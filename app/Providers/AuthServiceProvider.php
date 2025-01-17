@@ -26,7 +26,7 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         // Регистрация маршрутов Passport
-       // Passport::routes();
+       Passport::routes();
 
         // Опционально: установка времени жизни токенов
         Passport::tokensExpireIn(now()->addDays(15));

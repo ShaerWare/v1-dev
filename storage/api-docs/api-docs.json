@@ -119,12 +119,12 @@
                                 "properties": {
                                     "email": {
                                         "type": "string",
-                                        "example": "john.doe@example.com"
+                                        "example": "admin@gmail.com"
                                     },
                                     "password": {
                                         "type": "string",
                                         "format": "password",
-                                        "example": "password123"
+                                        "example": "123456"
                                     }
                                 },
                                 "type": "object"
@@ -142,6 +142,23 @@
                                         "token": {
                                             "type": "string",
                                             "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                                        },
+                                        "user": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "admin@gmail.com"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -311,16 +328,16 @@
     },
     "tags": [
         {
-            "name": "Admin",
-            "description": "Управление ролями и привилегиями"
-        },
-        {
             "name": "Auth",
             "description": "API для аутентификации"
         },
         {
             "name": "TeamLead",
             "description": "Управление баерами"
+        },
+        {
+            "name": "Admin",
+            "description": "Admin"
         },
         {
             "name": "Product",
