@@ -29,8 +29,8 @@ class AuthServiceProvider extends ServiceProvider
        //Passport::routes();
 
         // Опционально: установка времени жизни токенов
-        Passport::tokensExpireIn(now()->addDays(15));
-        Passport::refreshTokensExpireIn(now()->addDays(30));
+        //Passport::tokensExpireIn(now()->addDays(15));
+        //Passport::refreshTokensExpireIn(now()->addDays(30));
 
         // Если нужно, добавьте кастомные возможности
         Passport::tokensCan([

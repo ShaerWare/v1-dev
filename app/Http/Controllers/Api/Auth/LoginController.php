@@ -71,6 +71,8 @@ class LoginController extends Controller
 
         // Генерация токена через Passport
         $token = $user->createToken('authToken')->accessToken;
+        //$token = PersonalAccessToken::createToken($user, 'authToken')->accessToken;
+
 
         // Ответ с токеном и данными пользователя
         return response()->json([
