@@ -6,34 +6,94 @@
         "version": "1.0.0"
     },
     "paths": {
-        "/api/users/{userId}/roles": {
+        "/api/admin": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Получение списка всех администраторов",
+                "description": "Возвращает список всех существующих администраторов",
+                "operationId": "4d591b8bc6e9bc9494d2dd87c1032f02",
+                "responses": {
+                    "200": {
+                        "description": "Успешно получен список всех администраторов",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Список администраторов успешно получен"
+                                        },
+                                        "admins": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Иван Иванов"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "ivan@example.com"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Администраторы не найдены",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Администраторы не найдены"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Admin"
                 ],
-                "summary": "Назначить роль пользователю",
-                "operationId": "3efb0f8b78abf54f96b21d3546512f45",
-                "parameters": [
-                    {
-                        "name": "userId",
-                        "in": "path",
-                        "description": "ID пользователя",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
+                "summary": "Создание нового администратора",
+                "description": "Назначает роль администратора существующему пользователю по его ID",
+                "operationId": "924b9bac5ee73910ef1729373e53da38",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
+                                "required": [
+                                    "userId"
+                                ],
                                 "properties": {
-                                    "role": {
-                                        "type": "string",
-                                        "example": "editor"
+                                    "userId": {
+                                        "description": "ID пользователя, которому будет назначена роль администратора",
+                                        "type": "integer",
+                                        "example": 1
                                     }
                                 },
                                 "type": "object"
@@ -43,60 +103,295 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Роль успешно назначена"
+                        "description": "Роль администратора успешно назначена",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Роль администратора успешно назначена"
+                                        },
+                                        "admin": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Иван Иванов"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "ivan@example.com"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Неавторизован",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorized"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещен",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Forbidden"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "404": {
-                        "description": "Пользователь не найден"
+                        "description": "Пользователь не найден",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Пользователь не найден"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
             }
         },
-        "/api/roles/{roleId}/permissions": {
-            "post": {
+        "/api/admin/{id}": {
+            "get": {
                 "tags": [
                     "Admin"
                 ],
-                "summary": "Назначить привилегии роли",
-                "operationId": "f9413000bd2e6aca7e16454706685e05",
+                "summary": "Получение информации о конкретном администраторе",
+                "description": "Возвращает информацию о конкретном администраторе по его ID",
+                "operationId": "25771fd3394a046c032b0722a00cf908",
                 "parameters": [
                     {
-                        "name": "roleId",
+                        "name": "id",
                         "in": "path",
-                        "description": "ID роли",
+                        "description": "ID администратора",
                         "required": true,
                         "schema": {
-                            "type": "integer",
-                            "example": 1
+                            "type": "integer"
                         }
                     }
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "permissions": {
-                                        "type": "array",
-                                        "items": {
+                "responses": {
+                    "200": {
+                        "description": "Информация о администраторе успешно получена",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
                                             "type": "string",
-                                            "example": "create-post"
+                                            "example": "Информация о администраторе успешно получена"
+                                        },
+                                        "admin": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Иван Иванов"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "ivan@example.com"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
-                                    }
-                                },
-                                "type": "object"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Администратор не найден",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Администратор не найден"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
                             }
                         }
                     }
                 },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Удаление администратора",
+                "description": "Удаляет администратора по его ID",
+                "operationId": "b2546d49c7719ffdf0bde32700b5aff5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID администратора",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
-                    "200": {
-                        "description": "Привилегии успешно назначены"
+                    "204": {
+                        "description": "Администратор успешно удален"
                     },
                     "404": {
-                        "description": "Роль не найдена"
+                        "description": "Администратор не найден",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Администратор не найден"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Получение списка всех зарегистрированных пользователей",
+                "description": "Возвращает список всех существующих пользователей",
+                "operationId": "90f579e80eccb33d46fba6704a152964",
+                "responses": {
+                    "200": {
+                        "description": "Успешно получен список всех пользователей",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Список пользователей успешно получен"
+                                        },
+                                        "users": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Иван Иванов"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "ivan@example.com"
+                                                    },
+                                                    "roles": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "example": "user"
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Пользователи не найдены",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Пользователи не найдены"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
             }
         },
         "/api/login": {
@@ -343,5 +638,15 @@
             "name": "Product",
             "description": "Product"
         }
-    ]
+    ],
+    "components": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": "Введите токен авторизации в формате Bearer {токен}"
+            }
+        }
+    }
 }

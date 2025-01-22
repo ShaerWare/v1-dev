@@ -21,8 +21,8 @@ return [
                 'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
 
                 /*
-                * Edit to set path where swagger ui assets should be stored
-                */
+                 * Edit to set path where swagger ui assets should be stored
+                 */
                 'swagger_ui_assets_path' => env('L5_SWAGGER_UI_ASSETS_PATH', 'vendor/swagger-api/swagger-ui/dist/'),
 
                 /*
@@ -45,6 +45,9 @@ return [
                  */
                 'annotations' => [
                     base_path('app'),
+                ],
+                'security' => [
+                    'BearerAuth' => []
                 ],
             ],
         ],
@@ -108,16 +111,16 @@ return [
              * @link https://zircote.github.io/swagger-php/reference/processors.html
              */
             'default_processors_configuration' => [
-            /** Example */
-            /**
-             * 'operationId.hash' => true,
-             * 'pathFilter' => [
-             * 'tags' => [
-             * '/pets/',
-             * '/store/',
-             * ],
-             * ],.
-             */
+                /** Example */
+                /**
+                 * 'operationId.hash' => true,
+                 * 'pathFilter' => [
+                 * 'tags' => [
+                 * '/pets/',
+                 * '/store/',
+                 * ],
+                 * ],.
+                 */
             ],
 
             /**
@@ -167,9 +170,15 @@ return [
 
         /*
          * API security definitions. Will be generated into documentation file.
-        */
+         */
         'securityDefinitions' => [
             'securitySchemes' => [
+                'BearerAuth' => [
+                    'type' => 'http',
+                    'scheme' => 'bearer',
+                    'bearerFormat' => 'JWT',
+                    'description' => 'Введите токен авторизации в формате Bearer {токен}',
+                ],
                 /*
                  * Examples of Security schemes
                  */
@@ -221,6 +230,7 @@ return [
                  * Examples of Securities
                  */
                 [
+
                     /*
                     'oauth2_security_example' => [
                         'read',
