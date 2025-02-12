@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleTableSeeder extends Seeder
 {
@@ -15,45 +15,56 @@ class RoleTableSeeder extends Seeder
     {
         // Определяем роли
         $roles = [
-            'admin',      // Администратор
-            'team_lead',  // Тимлид
-            'buyer'       // Байер
+            'admin',     // Администратор
+            'team_lead', // Тимлид
+            'buyer',     // Байер
         ];
 
-        // Создаём роли, если их ещё нет
+        // Гварды, для которых создаём роли
+        $guards = ['web', 'api'];
+
         foreach ($roles as $roleName) {
-            $role = Role::firstOrCreate(['name' => $roleName]);
+            foreach ($guards as $guard) {
+                $role = Role::firstOrCreate([
+                    'name'       => $roleName,
+                    'guard_name' => $guard,
+                ]);
 
-            // Назначаем привилегии для каждой роли
-            switch ($roleName) {
-                case 'admin':
-                    // Администратор получает все привилегии
-                    $role->givePermissionTo(Permission::all());
-                    break;
+                // Получаем только те привилегии, которые принадлежат нужному guard'у
+                $permissions = Permission::where('guard_name', $guard)->get();
 
-                case 'team_lead':
-                    // Тимлид получает доступ к ролям и продуктам, но ограничен
-                    $role->givePermissionTo([
-                        'role-list',
-                        'product-list',
-                        'product-create',
-                        'product-edit'
-                    ]);
-                    break;
+                switch ($roleName) {
+                    case 'admin':
+                        $role->syncPermissions($permissions);
+                        break;
 
-                case 'buyer':
-                    // Байер получает доступ к управлению своими продуктами и просмотр остальных
-                    $role->givePermissionTo([
-                        'product-list',
-                        'product-create-own',
-                        'product-edit-own',
-                        'product-delete-own'
-                    ]);
-                    break;
+                    case 'team_lead':
+                        $teamLeadPermissions = [
+                            'role-list',
+                            'product-list',
+                            'product-create',
+                            'product-edit',
+                        ];
+                        $role->syncPermissions(
+                            $permissions->whereIn('name', $teamLeadPermissions)
+                        );
+                        break;
+
+                    case 'buyer':
+                        $buyerPermissions = [
+                            'product-list',
+                            'product-create-own',
+                            'product-edit-own',
+                            'product-delete-own',
+                        ];
+                        $role->syncPermissions(
+                            $permissions->whereIn('name', $buyerPermissions)
+                        );
+                        break;
+                }
             }
         }
 
-        // Вывод результата в консоль для отладки (опционально)
-        $this->command->info('Роли успешно созданы и привилегии назначены.');
+        $this->command->info('Роли успешно созданы для web и api, и привилегии назначены.');
     }
 }

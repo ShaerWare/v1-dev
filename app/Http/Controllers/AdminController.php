@@ -1,22 +1,14 @@
 <?php
-
-
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
 use Laravel\Passport\TokenRepository;
-use Laravel\Passport\Passport;
-
-
+use Spatie\Permission\Models\Role;
 
 class AdminController extends Controller
 {
-
 
     public function __construct()
     {
@@ -79,7 +71,7 @@ class AdminController extends Controller
     {
         $authUser = $this->authenticateUser($request);
 
-        if (!$authUser->hasRole('super_admin')) {
+        if (! $authUser->hasRole('admin')) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
@@ -87,16 +79,16 @@ class AdminController extends Controller
             'userId' => 'required|integer|exists:users,id',
         ]);
 
-        $user = User::findOrFail($request->userId);
+        $user      = User::findOrFail($request->userId);
         $adminRole = Role::where('name', 'admin')->firstOrFail();
 
         $user->assignRole($adminRole);
 
         return response()->json([
             'message' => 'Роль администратора успешно назначена',
-            'admin' => [
-                'id' => $user->id,
-                'name' => $user->name,
+            'admin'   => [
+                'id'    => $user->id,
+                'name'  => $user->name,
                 'email' => $user->email,
             ],
         ]);
@@ -146,10 +138,10 @@ class AdminController extends Controller
 
         return response()->json([
             'message' => 'Список администраторов успешно получен',
-            'admins' => $admins->map(function ($admin) {
+            'admins'  => $admins->map(function ($admin) {
                 return [
-                    'id' => $admin->id,
-                    'name' => $admin->name,
+                    'id'    => $admin->id,
+                    'name'  => $admin->name,
                     'email' => $admin->email,
                 ];
             })->toArray(),
@@ -158,28 +150,43 @@ class AdminController extends Controller
     private function authenticateUser(Request $request)
     {
         // Получаем токен из заголовка запроса
+        \Log::info('Authenticating user...');
+
+        // Получаем токен из заголовка запроса
         $token = $request->bearerToken();
 
         // Проверяем наличие токена
-        if (!$token) {
+        if (! $token) {
+            \Log::error('Token not found');
             abort(401, 'Unauthorized');
         }
 
         // Находим валидный токен для текущего пользователя
-        $personalAccessToken = app(TokenRepository::class)->findValidToken(
-            // Используем пользователя из запроса вместо Passport::token()
-            $request->user(),
-            // Получаем клиента из токена
-            $request->user()->defaultClient()
-        );
+        $tokenRepository = app(TokenRepository::class);
+        $accessToken     = $tokenRepository->find($token);
 
-        // Проверяем наличие валидного токена
-        if (!$personalAccessToken) {
+        // Проверяем, существует ли токен и не отозван ли он
+        if (! $accessToken || $accessToken->revoked) {
+            \Log::error('Invalid or revoked token');
             abort(401, 'Unauthorized');
         }
 
         // Возвращаем пользователя, связанного с токеном
-        return $personalAccessToken->user;
+        $user = $accessToken->user;
+        if (! $user) {
+            \Log::error('User not found for the token');
+            abort(401, 'Unauthorized');
+        }
+
+        // Получаем клиента по умолчанию (если нужно)
+        $client = Passport::client()->where('personal_access_client', true)->first();
+        if (! $client) {
+            \Log::error('Default client not found');
+            abort(500, 'Internal Server Error');
+        }
+
+        \Log::info('User authenticated: ' . $user->id);
+        return $user;
     }
     /**
      * @OA\Get(
@@ -222,15 +229,15 @@ class AdminController extends Controller
     {
         $admin = User::role('admin')->find($id);
 
-        if (!$admin) {
+        if (! $admin) {
             return response()->json(['message' => 'Администратор не найден'], 404);
         }
 
         return response()->json([
             'message' => 'Информация о администраторе успешно получена',
-            'admin' => [
-                'id' => $admin->id,
-                'name' => $admin->name,
+            'admin'   => [
+                'id'    => $admin->id,
+                'name'  => $admin->name,
                 'email' => $admin->email,
             ],
         ]);
@@ -328,10 +335,10 @@ class AdminController extends Controller
 
         return response()->json([
             'message' => 'Список пользователей успешно получен',
-            'users' => $users->map(function ($user) {
+            'users'   => $users->map(function ($user) {
                 return [
-                    'id' => $user->id,
-                    'name' => $user->name,
+                    'id'    => $user->id,
+                    'name'  => $user->name,
                     'email' => $user->email,
                     'roles' => $user->roles->pluck('name'),
                 ];
@@ -343,12 +350,12 @@ class AdminController extends Controller
     {
         $admin = User::where('role', 'admin')->find($id);
 
-        if (!$admin) {
+        if (! $admin) {
             return response()->json(['message' => 'Администратор не найден'], 404);
         }
 
         $validatedData = $request->validate([
-            'name' => 'sometimes|string|max:255',
+            'name'  => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,' . $admin->id,
         ]);
 
@@ -356,9 +363,9 @@ class AdminController extends Controller
 
         return response()->json([
             'message' => 'Информация об администраторе успешно обновлена',
-            'admin' => [
-                'id' => $admin->id,
-                'name' => $admin->name,
+            'admin'   => [
+                'id'    => $admin->id,
+                'name'  => $admin->name,
                 'email' => $admin->email,
             ],
         ]);
@@ -397,7 +404,7 @@ class AdminController extends Controller
     {
         $admin = User::where('role', 'admin')->find($id);
 
-        if (!$admin) {
+        if (! $admin) {
             return response()->json(['message' => 'Администратор не найден'], 404);
         }
 

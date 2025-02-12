@@ -1,12 +1,10 @@
 <?php
-
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Sanctum\PersonalAccessToken;
-use Illuminate\Foundation\Auth\User;
 
 /**
  * @OA\Info(
@@ -57,12 +55,12 @@ class LoginController extends Controller
     {
         // Валидация входных данных
         $credentials = $request->validate([
-            'email' => 'required|string|email',
+            'email'    => 'required|string|email',
             'password' => 'required|string',
         ]);
 
         // Попытка авторизации пользователя
-        if (!Auth::attempt($credentials)) {
+        if (! Auth::attempt($credentials)) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
@@ -71,15 +69,15 @@ class LoginController extends Controller
 
         // Генерация токена через Passport
         $token = $user->createToken('authToken')->accessToken;
-        //$token = PersonalAccessToken::createToken($user, 'authToken')->accessToken;
 
+        //$token = PersonalAccessToken::createToken($user, 'authToken')->accessToken;
 
         // Ответ с токеном и данными пользователя
         return response()->json([
             'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
+            'user'  => [
+                'id'    => $user->id,
+                'name'  => $user->name,
                 'email' => $user->email,
             ],
         ], 200);

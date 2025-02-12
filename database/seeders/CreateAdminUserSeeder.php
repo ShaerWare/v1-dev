@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
+use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class CreateAdminUserSeeder extends Seeder
 {
@@ -16,6 +16,16 @@ class CreateAdminUserSeeder extends Seeder
      */
     public function run()
     {
+        // Создаем роль admin для guard web
+        $roleWeb = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $permissionsWeb = Permission::where('guard_name', 'web')->get();
+        $roleWeb->syncPermissions($permissionsWeb);
+
+        // Создаем роль admin для guard api
+        $roleApi = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'api']);
+        $permissionsApi = Permission::where('guard_name', 'api')->get();
+        $roleApi->syncPermissions($permissionsApi);
+
         // Создание пользователя
         $user = User::create([
             'name' => 'Kapul Nagant',
@@ -32,10 +42,14 @@ class CreateAdminUserSeeder extends Seeder
         // Назначаем все разрешения роли
         $role->syncPermissions($permissions); // Роль получает все привилегии
 
+        // Назначаем пользователю роли для обоих guard'ов
+        $user->assignRole('admin', 'web');
+        $user->assignRole('admin', 'api');
+
         // Назначаем роль пользователю
-        $user->assignRole('admin'); // Присваиваем роль пользователю
+        // $user->assignRole('admin'); // Присваиваем роль пользователю
 
         // Вывод сообщения для отладки
-        $this->command->info('Администратор успешно создан с максимальными привилегиями.');
+        $this->command->info('Администратор успешно создан с максимальными привилегиями с ролями для web и api.');
     }
 }

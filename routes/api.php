@@ -1,13 +1,12 @@
 <?php
 
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Api\Auth\LoginController;
+use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\TeamLeadController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\TeamLeadController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\Api\Auth\RegisterController;
-use App\Http\Controllers\Api\Auth\LoginController;
 use Laravel\Passport\Http\Controllers\AccessTokenController;
 use Laravel\Passport\Http\Controllers\AuthorizationController;
 use Laravel\Passport\Http\Controllers\TransientTokenController;
@@ -38,17 +37,18 @@ Route::get('/users', [AdminController::class, 'getAllUsers']); //список в
 });
 */
 // Маршруты для Admin API (новый контроллер)
-Route::prefix('admin')->group(function () {
-    Route::post('/admin', [AdminController::class, 'createAdmin']);
-    Route::get('/', [AdminController::class, 'getAdmins']);
-    Route::get('{id}', [AdminController::class, 'getAdmin']);
-    Route::patch('{id}', [AdminController::class, 'updateAdmin']);
-    Route::delete('{id}', [AdminController::class, 'deleteAdmin']);
+Route::middleware('auth:api')->group(function () {
+    Route::prefix('admin')->group(function () {
+        Route::post('/admin', [AdminController::class, 'createAdmin']);
+        Route::get('/', [AdminController::class, 'getAdmins']);
+        Route::get('{id}', [AdminController::class, 'getAdmin']);
+        Route::patch('{id}', [AdminController::class, 'updateAdmin']);
+        Route::delete('{id}', [AdminController::class, 'deleteAdmin']);
 
-
-    // Добавьте следующие маршруты для работы с ролями через API
-    Route::post('/roles/{roleId}/permissions', [AdminController::class, 'assignPermissionsToRole']);
-    Route::delete('/roles/{roleId}/permissions', [AdminController::class, 'removePermissionsFromRole']);
+        // Добавьте следующие маршруты для работы с ролями через API
+        Route::post('/roles/{roleId}/permissions', [AdminController::class, 'assignPermissionsToRole']);
+        Route::delete('/roles/{roleId}/permissions', [AdminController::class, 'removePermissionsFromRole']);
+    });
 });
 
 ////Route::middleware('auth:sanctum')->group(function () {
