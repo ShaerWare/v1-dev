@@ -9,7 +9,7 @@ use Spatie\Permission\Models\Role;
 class RoleTableSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Запускает наполнение базы данных ролями и привилегиями.
      */
     public function run()
     {
@@ -25,42 +25,16 @@ class RoleTableSeeder extends Seeder
 
         foreach ($roles as $roleName) {
             foreach ($guards as $guard) {
-                $role = Role::firstOrCreate([
-                    'name'       => $roleName,
-                    'guard_name' => $guard,
-                ]);
+                // Создаём или обновляем роль
+                $role = Role::firstOrCreate(
+                    ['name' => $roleName, 'guard_name' => $guard]
+                );
 
-                // Получаем только те привилегии, которые принадлежат нужному guard'у
-                $permissions = Permission::where('guard_name', $guard)->get();
+                // Получаем привилегии для данного guard'а
+                $permissions = Permission::where('guard_name', $guard)->pluck('name')->toArray();
 
-                switch ($roleName) {
-                    case 'admin':
-                        $role->syncPermissions($permissions);
-                        break;
-
-                    case 'team_lead':
-                        $teamLeadPermissions = [
-                            'role-list',
-                            'product-list',
-                            'product-create',
-                            'product-edit',
-                        ];
-                        $role->syncPermissions(
-                            $permissions->whereIn('name', $teamLeadPermissions)
-                        );
-                        break;
-
-                    case 'buyer':
-                        $buyerPermissions = [
-                            'product-list',
-                            'product-create-own',
-                            'product-edit-own',
-                            'product-delete-own',
-                        ];
-                        $role->syncPermissions(
-                            $permissions->whereIn('name', $buyerPermissions)
-                        );
-                        break;
+                if (!empty($permissions)) {
+                    $role->syncPermissions($permissions);
                 }
             }
         }

@@ -10,46 +10,46 @@ use Spatie\Permission\Models\Role;
 class CreateAdminUserSeeder extends Seeder
 {
     /**
-     * Запустить начальные данные базы данных.
-     *
-     * @return void
+     * Запускает наполнение базы данных.
      */
     public function run()
     {
-        // Создаем роль admin для guard web
-        $roleWeb = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $permissionsWeb = Permission::where('guard_name', 'web')->get();
-        $roleWeb->syncPermissions($permissionsWeb);
+        // Проверяем, существует ли администратор
+        $user = User::where('email', 'hr@gmail.com')->first();
 
-        // Создаем роль admin для guard api
-        $roleApi = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'api']);
-        $permissionsApi = Permission::where('guard_name', 'api')->get();
-        $roleApi->syncPermissions($permissionsApi);
+        if (!$user) {
+            $user = User::create([
+                'name' => 'Kapul Nagant',
+                'email' => 'hr@gmail.com',
+                'password' => bcrypt('hr@gmav5%il.co7m!hfr56azl_c4m'),
+            ]);
+        }
 
-        // Создание пользователя
-        $user = User::create([
-            'name' => 'Kapul Nagant',
-            'email' => 'hr@gmail.com',
-            'password' => bcrypt('hr@gmav5%il.co7m!hfr56azl_c4m'),
-        ]);
+        // Проверяем, созданы ли роли для обоих guard'ов
+        $adminRoleWeb = Role::where(['name' => 'admin', 'guard_name' => 'web'])->first();
+        $adminRoleApi = Role::where(['name' => 'admin', 'guard_name' => 'api'])->first();
 
-        // Создание роли администратора, если она ещё не существует
-        $role = Role::firstOrCreate(['name' => 'admin']); // Используем 'admin' с маленькой буквы
+        if (!$adminRoleWeb || !$adminRoleApi) {
+            $this->command->error('Роли "admin" для web и api не найдены. Убедитесь, что RoleTableSeeder был запущен.');
 
-        // Получение всех разрешений
-        $permissions = Permission::all();
+            return;
+        }
 
-        // Назначаем все разрешения роли
-        $role->syncPermissions($permissions); // Роль получает все привилегии
+        // Получаем все разрешения для обоих guard'ов
+        $permissionsWeb = Permission::where('guard_name', 'web')->pluck('name')->toArray();
+        $permissionsApi = Permission::where('guard_name', 'api')->pluck('name')->toArray();
 
-        // Назначаем пользователю роли для обоих guard'ов
-        $user->assignRole('admin', 'web');
-        $user->assignRole('admin', 'api');
+        // Назначаем все разрешения ролям
+        $adminRoleWeb->syncPermissions($permissionsWeb);
+        $adminRoleApi->syncPermissions($permissionsApi);
 
-        // Назначаем роль пользователю
-        // $user->assignRole('admin'); // Присваиваем роль пользователю
+        // Удаляем все предыдущие роли пользователя (если есть)
+        $user->roles()->detach();
 
-        // Вывод сообщения для отладки
-        $this->command->info('Администратор успешно создан с максимальными привилегиями с ролями для web и api.');
+        // Назначаем пользователю роли администратора для обоих guard'ов
+        $user->assignRole($adminRoleWeb);
+        $user->assignRole($adminRoleApi);
+
+        $this->command->info('Администратор успешно создан и получил роли "admin" для web и api.');
     }
 }

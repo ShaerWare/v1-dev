@@ -23,11 +23,11 @@ class DatabaseSeeder extends Seeder
         */
         // Вызов дополнительных сидеров
         $this->call([
-            CreateAdminUserSeeder::class,
-            PermissionTableSeeder::class,
-            RoleTableSeeder::class,
+            PermissionTableSeeder::class,   // Сначала создаём разрешения
+            RoleTableSeeder::class,         // Затем создаём роли и привязываем к ним разрешения
+            CreateAdminUserSeeder::class,   // Потом создаём администратора и назначаем роли
         ]);
-        $this->command->info('Database seeded successfully.');
+        $this->command->info('Все сидеры успешно загружены.');
 
         $parameters = [
             '--personal' => true,
