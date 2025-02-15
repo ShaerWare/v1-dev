@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\User;
@@ -9,11 +10,28 @@ use Spatie\Permission\Models\Role;
 
 class AdminController extends Controller
 {
-
-    public function __construct()
+    public function __construct(Request $request)
     {
-        // Здесь можно добавить дополнительные проверки доступа или инициализацию,
-        // если это необходимо для всех методов контроллера.
+        // Получаем токен из заголовка запроса
+        $token = $request->bearerToken();
+
+        // Проверяем наличие токена
+        if (!$token) {
+            abort(401, 'Токен не найден');
+        }
+
+        // Используем Auth guard для получения пользователя
+        $this->authUser = Auth::guard('api')->user();
+
+        if (!$this->authUser) {
+            abort(401, 'Неавторизован');
+        }
+
+        // Проверяем роль администратора
+        $roles = $this->authUser->roles;
+        if (!in_array('admin', $roles->pluck('name')->toArray())) {
+            abort(403, 'Forbidden');
+        }
     }
 
     /**
@@ -25,17 +43,23 @@ class AdminController extends Controller
      *     security={
      *         {"BearerAuth": {}}
      *     },
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
      *             required={"userId"},
+     *
      *             @OA\Property(property="userId", type="integer", example=1, description="ID пользователя, которому будет назначена роль администратора")
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Роль администратора успешно назначена",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Роль администратора успешно назначена"),
      *             @OA\Property(property="admin", type="object",
      *                 @OA\Property(property="id", type="integer", example=1),
@@ -44,24 +68,33 @@ class AdminController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=401,
      *         description="Неавторизован",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Unauthorized")
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=403,
      *         description="Доступ запрещен",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Forbidden")
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=404,
      *         description="Пользователь не найден",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Пользователь не найден")
      *         )
      *     )
@@ -69,26 +102,32 @@ class AdminController extends Controller
      */
     public function createAdmin(Request $request)
     {
-        $authUser = $this->authenticateUser($request);
+        /*$authUser = $this->authenticateUser($request);
 
-        if (! $authUser->hasRole('admin')) {
-            return response()->json(['message' => 'Forbidden'], 403);
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
 
+        $roles = $authUser->roles;
+
+        if (!$roles->contains('name', 'admin')) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+*/
         $request->validate([
             'userId' => 'required|integer|exists:users,id',
         ]);
 
-        $user      = User::findOrFail($request->userId);
+        $user = User::findOrFail($request->userId);
         $adminRole = Role::where('name', 'admin')->firstOrFail();
 
         $user->assignRole($adminRole);
 
         return response()->json([
             'message' => 'Роль администратора успешно назначена',
-            'admin'   => [
-                'id'    => $user->id,
-                'name'  => $user->name,
+            'admin' => [
+                'id' => $user->id,
+                'name' => $user->name,
                 'email' => $user->email,
             ],
         ]);
@@ -103,13 +142,18 @@ class AdminController extends Controller
      *     security={
      *         {"BearerAuth": {}}
      *     },
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Успешно получен список всех администраторов",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Список администраторов успешно получен"),
      *             @OA\Property(property="admins", type="array",
+     *
      *                 @OA\Items(
+     *
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="name", type="string", example="Иван Иванов"),
      *                     @OA\Property(property="email", type="string", example="ivan@example.com")
@@ -117,10 +161,13 @@ class AdminController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=404,
      *         description="Администраторы не найдены",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Администраторы не найдены")
      *         )
      *     )
@@ -128,7 +175,7 @@ class AdminController extends Controller
      */
     public function getAdmins(Request $request)
     {
-        $this->authenticateUser($request);
+        /* $this->authenticateUser($request); */
 
         $admins = User::role('admin')->get();
 
@@ -138,56 +185,68 @@ class AdminController extends Controller
 
         return response()->json([
             'message' => 'Список администраторов успешно получен',
-            'admins'  => $admins->map(function ($admin) {
+            'admins' => $admins->map(function ($admin) {
                 return [
-                    'id'    => $admin->id,
-                    'name'  => $admin->name,
+                    'id' => $admin->id,
+                    'name' => $admin->name,
                     'email' => $admin->email,
                 ];
             })->toArray(),
         ]);
     }
+
     private function authenticateUser(Request $request)
     {
-        // Получаем токен из заголовка запроса
-        \Log::info('Authenticating user...');
-
         // Получаем токен из заголовка запроса
         $token = $request->bearerToken();
 
         // Проверяем наличие токена
-        if (! $token) {
-            \Log::error('Token not found');
-            abort(401, 'Unauthorized');
+        if (!$token) {
+            abort(401, 'Токен не найден');
         }
 
-        // Находим валидный токен для текущего пользователя
-        $tokenRepository = app(TokenRepository::class);
-        $accessToken     = $tokenRepository->find($token);
+        // Используем Auth guard для получения пользователя
+        $user = Auth::guard('api')->user();
 
-        // Проверяем, существует ли токен и не отозван ли он
-        if (! $accessToken || $accessToken->revoked) {
-            \Log::error('Invalid or revoked token');
-            abort(401, 'Unauthorized');
+        if (!$user) {
+            abort(401, 'Неавторизован');
         }
 
-        // Возвращаем пользователя, связанного с токеном
-        $user = $accessToken->user;
-        if (! $user) {
-            \Log::error('User not found for the token');
-            abort(401, 'Unauthorized');
+        // Проверяем роль администратора
+        $roles = $user->roles;
+        if (!in_array('admin', $roles->pluck('name')->toArray())) {
+            abort(403, 'Forbidden');
         }
 
-        // Получаем клиента по умолчанию (если нужно)
-        $client = Passport::client()->where('personal_access_client', true)->first();
-        if (! $client) {
-            \Log::error('Default client not found');
-            abort(500, 'Internal Server Error');
-        }
-
-        \Log::info('User authenticated: ' . $user->id);
         return $user;
+        /*
+                // Находим валидный токен для текущего пользователя
+                $tokenRepository = app(TokenRepository::class);
+                $accessToken = $tokenRepository->find($token);
+
+                // Проверяем, существует ли токен и не отозван ли он
+                if (!$accessToken || $accessToken->revoked) {
+                    abort(401, 'Invalid or revoked token, Unauthorized');
+                }
+
+                // Возвращаем пользователя, связанного с токеном
+                $user = $accessToken->user;
+                if (!$user) {
+                    abort(401, 'User not found for the token');
+                }
+
+                // Получаем клиента по умолчанию (если нужно)
+                // $client = Passport::client()->where('personal_access_client', true)->first();
+                $client = \Laravel\Passport\Client::where('personal_access_client', true)->first();
+
+                if (!$client) {
+                    abort(500, 'Internal Server Error, Default client not found');
+                }
+
+                return $user;
+                */
     }
+
     /**
      * @OA\Get(
      *     path="/api/admin/{id}",
@@ -197,17 +256,22 @@ class AdminController extends Controller
      *     security={
      *         {"BearerAuth": {}}
      *     },
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID администратора",
      *         required=true,
+     *
      *         @OA\Schema(type="integer")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Информация о администраторе успешно получена",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Информация о администраторе успешно получена"),
      *             @OA\Property(property="admin", type="object",
      *                 @OA\Property(property="id", type="integer", example=1),
@@ -216,10 +280,13 @@ class AdminController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=404,
      *         description="Администратор не найден",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Администратор не найден")
      *         )
      *     )
@@ -229,15 +296,15 @@ class AdminController extends Controller
     {
         $admin = User::role('admin')->find($id);
 
-        if (! $admin) {
+        if (!$admin) {
             return response()->json(['message' => 'Администратор не найден'], 404);
         }
 
         return response()->json([
             'message' => 'Информация о администраторе успешно получена',
-            'admin'   => [
-                'id'    => $admin->id,
-                'name'  => $admin->name,
+            'admin' => [
+                'id' => $admin->id,
+                'name' => $admin->name,
                 'email' => $admin->email,
             ],
         ]);
@@ -252,24 +319,32 @@ class AdminController extends Controller
      *     security={
      *         {"BearerAuth": {}}
      *     },
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID администратора",
      *         required=true,
+     *
      *         @OA\Schema(type="integer")
      *     ),
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="name", type="string", example="Новый Имя Администратора"),
      *             @OA\Property(property="email", type="string", format="email", example="new.admin@example.com")
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Информация об администраторе успешно обновлена",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Информация об администраторе успешно обновлена"),
      *             @OA\Property(property="admin", type="object",
      *                 @OA\Property(property="id", type="integer", example=1),
@@ -278,10 +353,13 @@ class AdminController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=404,
      *         description="Администратор не найден",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Администратор не найден")
      *         )
      *     )
@@ -297,18 +375,25 @@ class AdminController extends Controller
      *     security={
      *         {"BearerAuth": {}}
      *     },
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Успешно получен список всех пользователей",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Список пользователей успешно получен"),
      *             @OA\Property(property="users", type="array",
+     *
      *                 @OA\Items(
+     *
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="name", type="string", example="Иван Иванов"),
      *                     @OA\Property(property="email", type="string", example="ivan@example.com"),
      *                     @OA\Property(property="roles", type="array",
+     *
      *                         @OA\Items(
+     *
      *                             @OA\Property(property="name", type="string", example="user")
      *                         )
      *                     )
@@ -316,10 +401,13 @@ class AdminController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=404,
      *         description="Пользователи не найдены",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Пользователи не найдены")
      *         )
      *     )
@@ -335,10 +423,10 @@ class AdminController extends Controller
 
         return response()->json([
             'message' => 'Список пользователей успешно получен',
-            'users'   => $users->map(function ($user) {
+            'users' => $users->map(function ($user) {
                 return [
-                    'id'    => $user->id,
-                    'name'  => $user->name,
+                    'id' => $user->id,
+                    'name' => $user->name,
                     'email' => $user->email,
                     'roles' => $user->roles->pluck('name'),
                 ];
@@ -350,22 +438,22 @@ class AdminController extends Controller
     {
         $admin = User::where('role', 'admin')->find($id);
 
-        if (! $admin) {
+        if (!$admin) {
             return response()->json(['message' => 'Администратор не найден'], 404);
         }
 
         $validatedData = $request->validate([
-            'name'  => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $admin->id,
+            'name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:users,email,'.$admin->id,
         ]);
 
         $admin->update($validatedData);
 
         return response()->json([
             'message' => 'Информация об администраторе успешно обновлена',
-            'admin'   => [
-                'id'    => $admin->id,
-                'name'  => $admin->name,
+            'admin' => [
+                'id' => $admin->id,
+                'name' => $admin->name,
                 'email' => $admin->email,
             ],
         ]);
@@ -380,13 +468,16 @@ class AdminController extends Controller
      *     security={
      *         {"BearerAuth": {}}
      *     },
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         description="ID администратора",
      *         required=true,
+     *
      *         @OA\Schema(type="integer")
      *     ),
+     *
      *     @OA\Response(
      *         response=204,
      *         description="Администратор успешно удален"
@@ -394,22 +485,45 @@ class AdminController extends Controller
      *     @OA\Response(
      *         response=404,
      *         description="Администратор не найден",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="message", type="string", example="Администратор не найден")
      *         )
      *     )
      * )
      */
-    public function deleteAdmin($id)
+    public function deleteAdmin(Request $request, $id)
     {
-        $admin = User::where('role', 'admin')->find($id);
+        /*$authUser = $this->authenticateUser($request);
 
-        if (! $admin) {
+        if (!$authUser) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $roles = $authUser->roles;
+
+        if (!$roles->contains('name', 'admin')) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+*/
+        $admin = User::role('admin')->find($id);
+
+        if (!$admin) {
             return response()->json(['message' => 'Администратор не найден'], 404);
         }
 
-        $admin->delete();
+        // Удаление роли "admin"
+        $admin->removeRole('admin');
 
-        return response()->noContent();
+        return response()->json([
+            'message' => 'Роль администратора успешно удалена',
+            'user' => [
+                'id' => $admin->id,
+                'name' => $admin->name,
+                'email' => $admin->email,
+                'roles' => $admin->roles->pluck('name')->toArray(), // Текущие роли пользователя
+            ],
+        ]);
     }
 }

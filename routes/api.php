@@ -27,7 +27,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
 
-Route::get('/users', [AdminController::class, 'getAllUsers']); //список всех юзеров
+Route::get('/users', [AdminController::class, 'getAllUsers']); // список всех юзеров
 
 /*Route::group(['middleware' => ['auth:api']], function () {
     Route::prefix('admin')->group(function () {
@@ -39,7 +39,7 @@ Route::get('/users', [AdminController::class, 'getAllUsers']); //список в
 // Маршруты для Admin API (новый контроллер)
 Route::middleware('auth:api')->group(function () {
     Route::prefix('admin')->group(function () {
-        Route::post('/admin', [AdminController::class, 'createAdmin']);
+        Route::post('/', [AdminController::class, 'createAdmin']);
         Route::get('/', [AdminController::class, 'getAdmins']);
         Route::get('{id}', [AdminController::class, 'getAdmin']);
         Route::patch('{id}', [AdminController::class, 'updateAdmin']);
@@ -51,11 +51,11 @@ Route::middleware('auth:api')->group(function () {
     });
 });
 
-////Route::middleware('auth:sanctum')->group(function () {
+// //Route::middleware('auth:sanctum')->group(function () {
 // Администратор
-//Route::post('roles', [AdminController::class, 'createRole']);
-//Route::post('users/{userId}/roles', [AdminController::class, 'assignRoleToUser']);
-//Route::post('roles/{roleId}/permissions', [AdminController::class, 'assignPermissionsToRole']);
+// Route::post('roles', [AdminController::class, 'createRole']);
+// Route::post('users/{userId}/roles', [AdminController::class, 'assignRoleToUser']);
+// Route::post('roles/{roleId}/permissions', [AdminController::class, 'assignPermissionsToRole']);
 
 // Лидеры
 Route::post('users/{userId}/assign-buyer', [TeamLeadController::class, 'assignBuyerRole']);
@@ -66,4 +66,4 @@ Route::get('products', [ProductController::class, 'index']);
 Route::post('products', [ProductController::class, 'create']);
 Route::put('products/{productId}', [ProductController::class, 'update']);
 Route::delete('products/{productId}', [ProductController::class, 'destroy']);
-//});
+// });
