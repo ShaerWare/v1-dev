@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\ProductController;
@@ -29,15 +30,13 @@ Route::get('/user', function (Request $request) {
 
 Route::get('/users', [AdminController::class, 'getAllUsers']); // список всех юзеров
 
-/*Route::group(['middleware' => ['auth:api']], function () {
-    Route::prefix('admin')->group(function () {
-        Route::post('/', [AdminController::class, 'createAdmin']);
-        // ... другие маршруты ...
-    });
-});
-*/
 // Маршруты для Admin API (новый контроллер)
 Route::middleware('auth:api')->group(function () {
+
+    Route::get('/profile', [ProfileController::class, 'show']);  // Получить информацию о профиле
+    Route::patch('/profile', [ProfileController::class, 'update']); // Обновить профиль
+    Route::delete('/profile', [ProfileController::class, 'destroy']); // Удалить профиль
+
     Route::prefix('admin')->group(function () {
         Route::post('/', [AdminController::class, 'createAdmin']);
         Route::get('/', [AdminController::class, 'getAdmins']);

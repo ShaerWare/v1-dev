@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfileControllerWeb;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminControllerWeb;
 use App\Http\Controllers\TeamLeadControllerWeb;
@@ -15,9 +15,9 @@ Route::get('/', function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile', [ProfileControllerWeb::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileControllerWeb::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileControllerWeb::class, 'destroy'])->name('profile.destroy');
 });
 
 Route::get('/dashboard', function () {

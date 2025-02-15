@@ -30,7 +30,7 @@ class AdminController extends Controller
         // Проверяем роль администратора
         $roles = $this->authUser->roles;
         if (!in_array('admin', $roles->pluck('name')->toArray())) {
-            abort(403, 'Forbidden');
+            abort(401, 'У вас нет доступа');
         }
     }
 
@@ -215,7 +215,7 @@ class AdminController extends Controller
         // Проверяем роль администратора
         $roles = $user->roles;
         if (!in_array('admin', $roles->pluck('name')->toArray())) {
-            abort(403, 'Forbidden');
+            abort(403, 'У вас нет доступа');
         }
 
         return $user;
