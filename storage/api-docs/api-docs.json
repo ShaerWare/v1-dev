@@ -557,40 +557,6 @@
                 }
             }
         },
-        "/api/products": {
-            "post": {
-                "tags": [
-                    "Product"
-                ],
-                "summary": "Создать продукт",
-                "operationId": "9934bcf87d6613c14890dbdd587d311a",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Продукт 1"
-                                    },
-                                    "price": {
-                                        "type": "number",
-                                        "example": 100.5
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Продукт успешно создан"
-                    }
-                }
-            }
-        },
         "/api/profile": {
             "get": {
                 "tags": [
@@ -772,35 +738,6 @@
                     }
                 ]
             }
-        },
-        "/api/users/{userId}/remove-buyer": {
-            "post": {
-                "tags": [
-                    "TeamLead"
-                ],
-                "summary": "Удалить роль баера",
-                "operationId": "3a20e1498d03a793396e12d66010e636",
-                "parameters": [
-                    {
-                        "name": "userId",
-                        "in": "path",
-                        "description": "ID пользователя",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 2
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Роль баера успешно удалена"
-                    },
-                    "404": {
-                        "description": "Пользователь не найден"
-                    }
-                }
-            }
         }
     },
     "tags": [
@@ -809,16 +746,8 @@
             "description": "API для аутентификации"
         },
         {
-            "name": "TeamLead",
-            "description": "Управление баерами"
-        },
-        {
             "name": "Admin",
             "description": "Admin"
-        },
-        {
-            "name": "Product",
-            "description": "Product"
         },
         {
             "name": "Profile",

@@ -46,7 +46,7 @@ class CreateAdminUserSeeder extends Seeder
         // Удаляем все предыдущие роли пользователя (если есть)
         $user->roles()->detach();
 
-        // Назначаем пользователю роли администратора для обоих guard'ов
+        // Назначаем пользователю роли администратора для обоих guard'ов и орхидеи
         $user->assignRole($adminRoleWeb);
         $user->assignRole($adminRoleApi);
 
