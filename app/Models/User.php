@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Arr;
 use Laravel\Passport\HasApiTokens;
 use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\Where;
@@ -18,6 +19,20 @@ class User extends Authenticatable
     use HasFactory;
     use Notifiable;
     use HasRoles;
+
+    // Переопределяем метод, чтобы учесть Spatie и Orchid
+    public function hasAccess(string $permission, bool $strict = false): bool
+    {
+        // 1. Проверяем права через Spatie (если у роли есть доступ)
+        if ($this->hasPermissionTo($permission)) {
+            return true;
+        }
+
+        // 2. Проверяем, есть ли это право в JSON `permissions` (Orchid)
+        $permissions = $this->permissions ? json_decode($this->permissions, true) : [];
+
+        return Arr::get($permissions, $permission, false);
+    }
 
     public function removeRole($role): int
     {
@@ -36,8 +51,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'phone',
         'email',
         'password',
+        'sms_code',
+        'sms_code_expires_at',
     ];
 
     /**

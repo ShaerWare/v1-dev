@@ -20,6 +20,7 @@ class CreateAdminUserSeeder extends Seeder
         if (!$user) {
             $user = User::create([
                 'name' => 'Kapul Nagant',
+                'phone' => '+79826312267',
                 'email' => 'hr@gmail.com',
                 'password' => bcrypt('hr@gmav5%il.co7m!hfr56azl_c4m'),
             ]);
@@ -49,6 +50,24 @@ class CreateAdminUserSeeder extends Seeder
         // Назначаем пользователю роли администратора для обоих guard'ов и орхидеи
         $user->assignRole($adminRoleWeb);
         $user->assignRole($adminRoleApi);
+
+        // Добавляем Orchid-права, если установлен Orchid
+        if (class_exists(\Orchid\Platform\Dashboard::class)) {
+            $orchidPermissions = [
+                'platform.index',
+                'platform.systems.roles',
+                'platform.systems.users',
+                'platform.systems.attachment',
+            ];
+
+            foreach ($orchidPermissions as $perm) {
+                Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'web']);
+            }
+
+            $adminRoleWeb->syncPermissions($orchidPermissions);
+            $this->command->info('✅ Orchid-права назначены администратору.');
+        }
+
 
         $this->command->info('Администратор успешно создан и получил роли "admin" для web и api.');
     }
