@@ -19,6 +19,8 @@ use App\Orchid\Screens\User\UserListScreen;
 use App\Orchid\Screens\User\UserProfileScreen;
 use Illuminate\Support\Facades\Route;
 use Tabuna\Breadcrumbs\Trail;
+use App\Orchid\Screens\AuthBannerScreen;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +36,10 @@ use Tabuna\Breadcrumbs\Trail;
 // Main
 Route::screen('/main', PlatformScreen::class)
     ->name('platform.main');
+
+    Route::screen('auth-banners', AuthBannerScreen::class)
+    ->name('platform.auth-banners')
+    ->middleware(['web', 'platform']);
 
 // Platform > Profile
 Route::screen('profile', UserProfileScreen::class)

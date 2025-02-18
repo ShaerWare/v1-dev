@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Passport\Http\Controllers\AccessTokenController;
 use Laravel\Passport\Http\Controllers\AuthorizationController;
 use Laravel\Passport\Http\Controllers\TransientTokenController;
+use App\Http\Controllers\AuthBannerController;
+
 
 Route::post('/oauth/token', [AccessTokenController::class, 'issueToken'])
     ->name('passport.token');
@@ -29,6 +31,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:api');
 
 Route::get('/users', [AdminController::class, 'getAllUsers']); // список всех юзеров
+Route::get('/auth-banners', [AuthBannerController::class, 'index']);
+
 
 // Маршруты для Admin API (новый контроллер)
 Route::middleware('auth:api')->group(function () {

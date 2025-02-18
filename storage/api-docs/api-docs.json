@@ -557,6 +557,73 @@
                 }
             }
         },
+        "/api/auth-banners": {
+            "get": {
+                "tags": [
+                    "AuthBanners"
+                ],
+                "summary": "Получить заставки для авторизации",
+                "description": "Получить заставки для авторизации в зависимости от типа доступа и индекса",
+                "operationId": "getAuthBanners",
+                "parameters": [
+                    {
+                        "name": "index",
+                        "in": "query",
+                        "description": "Индекс для фильтрации",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список заставок",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "title": {
+                                                "type": "string"
+                                            },
+                                            "access_type": {
+                                                "type": "string"
+                                            },
+                                            "index_code": {
+                                                "type": "string"
+                                            },
+                                            "image_url": {
+                                                "type": "string"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "updated_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный запрос"
+                    },
+                    "500": {
+                        "description": "Ошибка сервера"
+                    }
+                }
+            }
+        },
         "/api/profile": {
             "get": {
                 "tags": [
@@ -748,6 +815,10 @@
         {
             "name": "Admin",
             "description": "Admin"
+        },
+        {
+            "name": "AuthBanners",
+            "description": "AuthBanners"
         },
         {
             "name": "Profile",

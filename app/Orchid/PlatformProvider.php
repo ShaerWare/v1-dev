@@ -9,6 +9,8 @@ use Orchid\Platform\ItemPermission;
 use Orchid\Platform\OrchidServiceProvider;
 use Orchid\Screen\Actions\Menu;
 use Orchid\Support\Color;
+use App\Orchid\Screens\AuthBannerScreen;
+
 
 class PlatformProvider extends OrchidServiceProvider
 {
@@ -39,8 +41,14 @@ class PlatformProvider extends OrchidServiceProvider
                 ->title('Navigation')
                 ->route(config('platform.index')),
 
+            Menu::make('Заставки')
+                ->icon('image')
+                ->title('Некий контент')
+                ->route('platform.auth-banners'),
+
             Menu::make('Sample Screen')
                 ->icon('bs.collection')
+                ->title('Образцы HTML+CSS')
                 ->route('platform.example')
                 ->badge(fn () => 6),
 
@@ -66,13 +74,13 @@ class PlatformProvider extends OrchidServiceProvider
                 ->route('platform.example.cards')
                 ->divider(),
 
-            Menu::make(__('Users'))
+            Menu::make(__('Пользователи'))
                 ->icon('bs.people')
                 ->route('platform.systems.users')
                 ->permission('platform.systems.users')
-                ->title(__('Access Controls')),
+                ->title(__('Раздел администратора')),
 
-            Menu::make(__('Roles'))
+            Menu::make(__('Роли'))
                 ->icon('bs.shield')
                 ->route('platform.systems.roles')
                 ->permission('platform.systems.roles')
@@ -81,12 +89,12 @@ class PlatformProvider extends OrchidServiceProvider
             Menu::make('Documentation')
                 ->title('Docs')
                 ->icon('bs.box-arrow-up-right')
-                ->url('https://orchid.software/en/docs')
+                ->url('')
                 ->target('_blank'),
 
-            Menu::make('Changelog')
+            Menu::make('GitHub')
                 ->icon('bs.box-arrow-up-right')
-                ->url('https://github.com/orchidsoftware/platform/blob/master/CHANGELOG.md')
+                ->url('https://github.com/ShaerWare/v1-dev')
                 ->target('_blank')
                 ->badge(fn () => Dashboard::version(), Color::DARK),
         ];
