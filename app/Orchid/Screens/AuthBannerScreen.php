@@ -3,6 +3,7 @@
 namespace App\Orchid\Screens;
 
 use App\Models\AuthBanner;
+use Orchid\Screen\Actions\ModalToggle;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\Picture;
@@ -39,9 +40,10 @@ class AuthBannerScreen extends Screen
     public function commandBar(): array
     {
         return [
-            Button::make('Добавить заставку')
-                ->icon('plus')
-                ->method('create'),
+            ModalToggle::make('Добавить заставку')
+                ->modal('editBannerModal')
+                ->method('create')
+                ->icon('plus'),
         ];
     }
 
@@ -74,7 +76,8 @@ class AuthBannerScreen extends Screen
             Layout::modal('editBannerModal', [
                 Layout::rows([
                     Input::make('banner.title')
-                        ->title('Заголовок'),
+                        ->title('Заголовок')
+                        ->required(),
 
                     Input::make('banner.description')
                         ->title('Описание'),
@@ -88,10 +91,12 @@ class AuthBannerScreen extends Screen
                         ->required(),
 
                     Input::make('banner.index_code')
-                        ->title('Индекс'),
+                        ->title('Индекс')
+                        ->required(),
 
                     Picture::make('banner.image_path')
-                        ->title('Изображение'),
+                        ->title('Изображение')
+                        ->required(),
                 ])
             ])->title('Редактирование заставки')->applyButton('Сохранить'),
         ];
@@ -100,9 +105,12 @@ class AuthBannerScreen extends Screen
     /**
      * Создание новой записи.
      */
-    public function create()
+    public function create(array $data)
     {
-        $this->dispatch('openModal', 'editBannerModal'); // Используйте dispatch вместо emit
+        // Сохраняем новую заставку
+        $bannerData = $data['banner'] ?? [];
+        AuthBanner::create($bannerData);
+        Toast::info('Заставка успешно добавлена.');
     }
 
     /**
