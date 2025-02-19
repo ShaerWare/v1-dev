@@ -5,9 +5,13 @@ return [
 
     'platform' => [
         'user' => App\Models\User::class, // Укажи свою модель
-         'role_permissions' => false, // отключаем использование прав Orchid
-         'permissions' => false,
+        'role_permissions' => false, // отключаем использование прав Orchid
+        'permissions' => false,
         // другие настройки...
+    ],
+
+    'permission' => [
+        'role' => false,
     ],
 
     'roles' => [
@@ -97,6 +101,7 @@ return [
      */
 
     'auth' => true,
+    // 'auth' => false,
 
     /*
      |--------------------------------------------------------------------------

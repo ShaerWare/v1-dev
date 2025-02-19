@@ -23,6 +23,18 @@ class RoleTableSeeder extends Seeder
         // Гварды, для которых создаём роли
         $guards = ['web', 'api'];
 
+        // Определяем базовые права для админов в Orchid
+        $adminPermissions = [
+            'platform.index',
+            'platform.systems.roles',
+            'platform.systems.users',
+            'platform.systems.attachment',
+        ];
+
+        foreach ($adminPermissions as $perm) {
+            Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'web']);
+        }
+
         foreach ($roles as $roleName) {
             foreach ($guards as $guard) {
                 // Создаём или обновляем роль

@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Third Party Services
@@ -34,5 +33,10 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+    'sms' => [
+        'url' => env('SMS_API_URL'),
+        'api_key' => env('SMS_API_KEY'),
+        'login' => env('SMS_API_LOGIN'),
+        'password' => env('SMS_API_PASSWORD'),
+    ],
 ];

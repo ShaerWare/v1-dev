@@ -1,10 +1,11 @@
 <?php
 
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\AuthBannerController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TeamLeadController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,8 +22,11 @@ Route::get('/oauth/authorize', [AuthorizationController::class, 'authorize'])
 Route::post('/oauth/token/refresh', [TransientTokenController::class, 'refresh'])
     ->name('passport.token.refresh');
 
-Route::post('/register', [RegisterController::class, 'register']);
-Route::post('/login', [LoginController::class, 'login']);
+// Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/verify-sms', [LoginController::class, 'verifySms']);
+
+Route::post('/send-sms', [LoginController::class, 'sendSms']);
+// Route::post('/register/verify', [RegisterController::class, 'verifyCode']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -30,9 +34,10 @@ Route::get('/user', function (Request $request) {
 
 Route::get('/users', [AdminController::class, 'getAllUsers']); // список всех юзеров
 
+Route::get('/auth-banners', [AuthBannerController::class, 'index']);
+
 // Маршруты для Admin API (новый контроллер)
 Route::middleware('auth:api')->group(function () {
-
     Route::get('/profile', [ProfileController::class, 'show']);  // Получить информацию о профиле
     Route::patch('/profile', [ProfileController::class, 'update']); // Обновить профиль
     Route::delete('/profile', [ProfileController::class, 'destroy']); // Удалить профиль

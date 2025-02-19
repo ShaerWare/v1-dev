@@ -394,32 +394,26 @@
                 ]
             }
         },
-        "/api/login": {
+        "/api/send-sms": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Аутентификация пользователя",
-                "description": "Возвращает токен для авторизованного пользователя",
-                "operationId": "5f90fad45b3bec06f69a5d179ce78a5f",
+                "summary": "Получение смс для верификации. Если телефон не зарегестрирован в системе - он зарегестрируется и все равно получит СМС.",
+                "description": "Отправляет SMS с кодом подтверждения на указанный номер телефона.",
+                "operationId": "98ddc0112e6e4d69c243b730e98a9885",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "email",
-                                    "password"
+                                    "phone"
                                 ],
                                 "properties": {
-                                    "email": {
+                                    "phone": {
                                         "type": "string",
-                                        "example": "hr@gmail.com"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "hr@gmav5%il.co7m!hfr56azl_c4m"
+                                        "example": "9001234567"
                                     }
                                 },
                                 "type": "object"
@@ -429,7 +423,62 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Успешный вход",
+                        "description": "SMS отправлено",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Код подтверждения отправлен."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка отправки SMS"
+                    }
+                }
+            }
+        },
+        "/api/verify-sms": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Подтверждение кода и авторизация",
+                "description": "Проверяет код из SMS и выдаёт токен пользователю.",
+                "operationId": "580a84028119c207b49ffc17faaf28d4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone",
+                                    "code"
+                                ],
+                                "properties": {
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "9001234567"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Успешная авторизация",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -444,13 +493,9 @@
                                                     "type": "integer",
                                                     "example": 1
                                                 },
-                                                "name": {
+                                                "phone": {
                                                     "type": "string",
-                                                    "example": "John Doe"
-                                                },
-                                                "email": {
-                                                    "type": "string",
-                                                    "example": "admin@gmail.com"
+                                                    "example": "+79001234567"
                                                 }
                                             },
                                             "type": "object"
@@ -461,98 +506,75 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Неавторизован",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Unauthorized"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                    "400": {
+                        "description": "Неверный код или срок действия истёк"
                     }
                 }
             }
         },
-        "/api/register": {
-            "post": {
+        "/api/auth-banners": {
+            "get": {
                 "tags": [
-                    "Auth"
+                    "3аставки для авторизации"
                 ],
-                "summary": "Регистрация нового пользователя",
-                "description": "Создает нового пользователя в системе",
-                "operationId": "1716c95d7ee32950f11034c5cd88c6aa",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "name",
-                                    "email",
-                                    "password"
-                                ],
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "John Doe"
-                                    },
-                                    "email": {
-                                        "type": "string",
-                                        "example": "john.doe@example.com"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password",
-                                        "example": "password123"
-                                    }
-                                },
-                                "type": "object"
-                            }
+                "summary": "Получить заставки для авторизации",
+                "description": "Получить заставки для авторизации в зависимости от типа доступа и индекса",
+                "operationId": "getAuthBanners",
+                "parameters": [
+                    {
+                        "name": "index",
+                        "in": "query",
+                        "description": "Индекс для фильтрации",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
                         }
                     }
-                },
+                ],
                 "responses": {
-                    "201": {
-                        "description": "Пользователь успешно зарегистрирован",
+                    "200": {
+                        "description": "Список заставок",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "User registered successfully"
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "title": {
+                                                "type": "string"
+                                            },
+                                            "access_type": {
+                                                "type": "string"
+                                            },
+                                            "index_code": {
+                                                "type": "string"
+                                            },
+                                            "image_url": {
+                                                "type": "string"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "updated_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            }
                                         },
-                                        "user": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
+                                        "type": "object"
+                                    }
                                 }
                             }
                         }
                     },
-                    "422": {
-                        "description": "Ошибка валидации",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Validation error"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                    "400": {
+                        "description": "Неверный запрос"
+                    },
+                    "500": {
+                        "description": "Ошибка сервера"
                     }
                 }
             }
@@ -748,6 +770,10 @@
         {
             "name": "Admin",
             "description": "Admin"
+        },
+        {
+            "name": "3аставки для авторизации",
+            "description": "3аставки для авторизации"
         },
         {
             "name": "Profile",

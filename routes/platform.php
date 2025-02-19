@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Orchid\Screens\AuthBannerScreen;
+use App\Orchid\Screens\ContentScreen;
 use App\Orchid\Screens\Examples\ExampleActionsScreen;
 use App\Orchid\Screens\Examples\ExampleCardsScreen;
 use App\Orchid\Screens\Examples\ExampleChartsScreen;
@@ -14,6 +16,7 @@ use App\Orchid\Screens\Examples\ExampleTextEditorsScreen;
 use App\Orchid\Screens\PlatformScreen;
 use App\Orchid\Screens\Role\RoleEditScreen;
 use App\Orchid\Screens\Role\RoleListScreen;
+use App\Orchid\Screens\SliderBannerScreen;
 use App\Orchid\Screens\User\UserEditScreen;
 use App\Orchid\Screens\User\UserListScreen;
 use App\Orchid\Screens\User\UserProfileScreen;
@@ -34,6 +37,15 @@ use Tabuna\Breadcrumbs\Trail;
 // Main
 Route::screen('/main', PlatformScreen::class)
     ->name('platform.main');
+
+Route::screen('auth-banners', AuthBannerScreen::class)
+->name('platform.auth-banners')
+->middleware(['web', 'platform']);
+
+Route::screen('slider-banners', SliderBannerScreen::class)
+->name('platform.slider-banners')
+->middleware(['web', 'platform']);
+Route::screen('contents', ContentScreen::class)->name('platform.contents');
 
 // Platform > Profile
 Route::screen('profile', UserProfileScreen::class)
