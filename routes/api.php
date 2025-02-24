@@ -3,6 +3,8 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\Api\ContentController;
+use App\Http\Controllers\Api\SliderController;
 use App\Http\Controllers\AuthBannerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -35,6 +37,8 @@ Route::get('/user', function (Request $request) {
 Route::get('/users', [AdminController::class, 'getAllUsers']); // список всех юзеров
 
 Route::get('/auth-banners', [AuthBannerController::class, 'index']);
+Route::get('/content', [ContentController::class, 'index']);
+Route::get('/sliders', [SliderController::class, 'index']);
 
 // Маршруты для Admin API (новый контроллер)
 Route::middleware('auth:api')->group(function () {

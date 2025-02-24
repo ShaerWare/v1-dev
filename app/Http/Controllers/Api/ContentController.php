@@ -1,20 +1,21 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\AuthBanner;
+use App\Http\Controllers\Controller;
+use App\Models\Content;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class AuthBannerController extends Controller
+class ContentController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/auth-banners",
-     *     summary="Получить заставки для авторизации",
-     *     description="Получить заставки для авторизации в зависимости от типа доступа и индекса",
-     *     operationId="getAuthBanners",
-     *     tags={"3аставки для авторизации"},
+     *     path="/api/content",
+     *     summary="Получить список баннеров",
+     *     description="Возвращает список баннеров в зависимости от типа доступа и индекса",
+     *     operationId="getBanners",
+     *     tags={"Новости/Контент"},
      *
      *     @OA\Parameter(
      *         name="index",
@@ -27,13 +28,11 @@ class AuthBannerController extends Controller
      *
      *     @OA\Response(
      *         response=200,
-     *         description="Список заставок",
+     *         description="Список баннеров",
      *
-     *         @OA\JsonContent(
-     *             type="array",
+     *         @OA\JsonContent(type="array",
      *
-     *             @OA\Items(
-     *                 type="object",
+     *             @OA\Items(type="object",
      *
      *                 @OA\Property(property="id", type="integer"),
      *                 @OA\Property(property="title", type="string"),
@@ -46,14 +45,8 @@ class AuthBannerController extends Controller
      *         )
      *     ),
      *
-     *     @OA\Response(
-     *         response=400,
-     *         description="Неверный запрос"
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Ошибка сервера"
-     *     )
+     *     @OA\Response(response=400, description="Неверный запрос"),
+     *     @OA\Response(response=500, description="Ошибка сервера")
      * )
      */
     public function index(Request $request)
@@ -61,7 +54,6 @@ class AuthBannerController extends Controller
         $user = $request->user();
         $index = $request->query('index');
 
-        // Проверка, если индекс передан, валидируем
         $validator = Validator::make($request->all(), [
             'index' => 'nullable|string|max:255',
         ]);
@@ -70,8 +62,7 @@ class AuthBannerController extends Controller
             return response()->json(['error' => 'Invalid index format'], 400);
         }
 
-        // Получаем заставки в зависимости от типа доступа и индекса
-        $banners = AuthBanner::query()
+        $banners = Content::query()
             ->when(!$user, fn ($query) => $query->where('access_type', 'all'))
             ->when(isset($index) && $index !== '', fn ($query) => $query->where('index_code', $index))
             ->get();
