@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         */
         // Вызов дополнительных сидеров
         $this->call([
+            RegionIndexSeeder::class,  // заливаем список геолокаций
             PermissionTableSeeder::class,   // Сначала создаём разрешения
             RoleTableSeeder::class,         // Затем создаём роли и привязываем к ним разрешения
             CreateAdminUserSeeder::class,   // Потом создаём администратора и назначаем роли

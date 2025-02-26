@@ -14,6 +14,7 @@ use App\Orchid\Screens\Examples\ExampleLayoutsScreen;
 use App\Orchid\Screens\Examples\ExampleScreen;
 use App\Orchid\Screens\Examples\ExampleTextEditorsScreen;
 use App\Orchid\Screens\PlatformScreen;
+use App\Orchid\Screens\RegionIndexScreen;
 use App\Orchid\Screens\Role\RoleEditScreen;
 use App\Orchid\Screens\Role\RoleListScreen;
 use App\Orchid\Screens\SliderBannerScreen;
@@ -46,6 +47,9 @@ Route::screen('slider-banners', SliderBannerScreen::class)
 ->name('platform.slider-banners')
 ->middleware(['web', 'platform']);
 Route::screen('contents', ContentScreen::class)->name('platform.contents');
+
+Route::screen('/region-indexes', RegionIndexScreen::class)
+    ->name('platform.region.indexes');
 
 // Platform > Profile
 Route::screen('profile', UserProfileScreen::class)

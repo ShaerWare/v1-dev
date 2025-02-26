@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\ContentController;
+use App\Http\Controllers\Api\RegionIndexController;
 use App\Http\Controllers\Api\SliderController;
 use App\Http\Controllers\AuthBannerController;
 use App\Http\Controllers\ProductController;
@@ -23,6 +24,8 @@ Route::get('/oauth/authorize', [AuthorizationController::class, 'authorize'])
 
 Route::post('/oauth/token/refresh', [TransientTokenController::class, 'refresh'])
     ->name('passport.token.refresh');
+
+Route::get('/region-indices', [RegionIndexController::class, 'index']);
 
 // Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/verify-sms', [LoginController::class, 'verifySms']);
