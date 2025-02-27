@@ -2,6 +2,7 @@
 
 namespace App\Orchid\Screens;
 
+use App\Models\RegionIndex;
 use App\Models\SliderBanner;
 use Illuminate\Http\Request;
 use Orchid\Screen\Actions\Button;
@@ -49,7 +50,8 @@ class SliderBannerScreen extends Screen
                 TD::make('access_type', 'Доступ')
                     ->render(fn (SliderBanner $banner) => $banner->access_type === 'all' ? 'Все' : 'Только зарегистрированные'),
                 TD::make('index_code', 'Индекс')
-                    ->render(fn (SliderBanner $banner) => e($banner->index_code)),
+                    ->render(fn (SliderBanner $banner) => RegionIndex::where('index_code', $banner->index_code)->first()?->name ?? e($banner->index_code)
+                    ),
                 TD::make('image_path', 'Изображение')
                     ->render(fn (SliderBanner $banner) => $banner->image_path
                         ? "<img src='{$banner->image_url}' width='100' />"
@@ -91,26 +93,15 @@ class SliderBannerScreen extends Screen
 
                     Select::make('banner.index_code')
                         ->title('Индекс')
-                        ->options([
-                            1 => '1. Ярославль и обл.',
-                            2 => '2. Казань и Татарстан',
-                            3 => '3. Екатеринбург и обл.',
-                            4 => '4. Москва и Московская обл.',
-                            5 => '5. Владимир и обл.',
-                            6 => '6. Тверь и обл.',
-                            7 => '7. Калуга и обл.',
-                            8 => '8. Тула и обл.',
-                            9 => '9. Санкт-Петербург и обл.',
-                            10 => '10. Великий Новгород и обл.',
-                        ])
-                        ->required(),
+                        ->fromModel(RegionIndex::class, 'name', 'index_code')
+                        ->required()
+                        ->empty('Выберите регион'),
 
                     Picture::make('banner.image_path')
                         ->title('Изображение')
-                        ->value(fn ($banner) => is_string($banner) ? $banner : '')
                         ->required(),
                 ]),
-            ])->title('Редактирование заставки')->applyButton('Сохранить'),
+            ])->title('Добавить заставку')->applyButton('Сохранить'),
 
             Layout::modal('editSliderBannerModal', [
                 Layout::rows([
@@ -131,23 +122,12 @@ class SliderBannerScreen extends Screen
 
                     Select::make('banner.index_code')
                         ->title('Индекс')
-                        ->options([
-                            1 => '1. Ярославль и обл.',
-                            2 => '2. Казань и Татарстан',
-                            3 => '3. Екатеринбург и обл.',
-                            4 => '4. Москва и Московская обл.',
-                            5 => '5. Владимир и обл.',
-                            6 => '6. Тверь и обл.',
-                            7 => '7. Калуга и обл.',
-                            8 => '8. Тула и обл.',
-                            9 => '9. Санкт-Петербург и обл.',
-                            10 => '10. Великий Новгород и обл.',
-                        ])
-                        ->required(),
+                        ->fromModel(RegionIndex::class, 'name', 'index_code')
+                        ->required()
+                        ->empty('Выберите регион'),
 
                     Picture::make('banner.image_path')
                         ->title('Изображение')
-                        ->value(fn ($banner) => is_string($banner) ? $banner : '')
                         ->required(),
                 ]),
             ])->async('asyncGetSliderBanner')->title('Редактирование заставки')->applyButton('Сохранить'),
@@ -156,23 +136,36 @@ class SliderBannerScreen extends Screen
 
     public function create(Request $request)
     {
-        SliderBanner::create($request->get('banner'));
+        $data = $request->get('banner');
 
+        // Обработка пути к изображению
+        if (isset($data['image_path']) && is_array($data['image_path'])) {
+            $data['image_path'] = $data['image_path'][0] ?? null;
+        }
+
+        SliderBanner::create($data);
         Toast::info('Заставка успешно добавлена.');
     }
 
     public function update(Request $request, int $id)
     {
         $banner = SliderBanner::findOrFail($id);
-        $banner->update($request->get('banner'));
+        $data = $request->get('banner');
 
+        // Обработка пути к изображению
+        if (isset($data['image_path']) && is_array($data['image_path'])) {
+            $data['image_path'] = $data['image_path'][0] ?? null;
+        } elseif (!isset($data['image_path'])) {
+            unset($data['image_path']); // Оставляем старое значение, если изображение не обновляется
+        }
+
+        $banner->update($data);
         Toast::info('Заставка успешно обновлена.');
     }
 
     public function delete(int $id)
     {
         SliderBanner::findOrFail($id)->delete();
-
         Toast::info('Заставка удалена.');
     }
 
@@ -182,7 +175,7 @@ class SliderBannerScreen extends Screen
 
         return [
             'banner' => array_merge($banner->toArray(), [
-                'image_path' => $banner->image_path ?? '',
+                'image_path' => is_string($banner->image_path) ? $banner->image_path : '',
             ]),
         ];
     }

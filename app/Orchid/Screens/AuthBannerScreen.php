@@ -3,6 +3,7 @@
 namespace App\Orchid\Screens;
 
 use App\Models\AuthBanner;
+use App\Models\RegionIndex;
 use Illuminate\Http\Request;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\ModalToggle;
@@ -57,12 +58,12 @@ class AuthBannerScreen extends Screen
                 TD::make('id', 'ID')->sort(),
                 TD::make('title', 'Заголовок')
                     ->sort()
-                    ->render(fn (AuthBanner $banner) => e($banner->title)), // Безопасный вывод
+                    ->render(fn (AuthBanner $banner) => e($banner->title)),
                 TD::make('access_type', 'Доступ')
                     ->render(fn (AuthBanner $banner) => $banner->access_type === 'all' ? 'Все' : 'Только зарегистрированные'),
                 TD::make('index_code', 'Индекс')
                     ->sort()
-                    ->render(fn (AuthBanner $banner) => e($banner->index_code)),
+                    ->render(fn (AuthBanner $banner) => $this->getRegionName($banner->index_code)), // Выводим название региона
                 TD::make('image_path', 'Изображение')
                     ->render(fn (AuthBanner $banner) => $banner->image_path
                         ? "<img src='{$banner->image_url}' width='100' />"
@@ -93,11 +94,9 @@ class AuthBannerScreen extends Screen
                     Input::make('banner.title')
                         ->title('Заголовок')
                         ->required(),
-
                     Input::make('banner.description')
                         ->title('Описание')
                         ->required(),
-
                     Select::make('banner.access_type')
                         ->title('Доступ')
                         ->options([
@@ -105,39 +104,23 @@ class AuthBannerScreen extends Screen
                             'registered' => 'Только зарегистрированные',
                         ])
                         ->required(),
-
                     Select::make('banner.index_code')
                         ->title('Индекс')
-                        ->options([
-                            1 => '1. Ярославль и обл.',
-                            2 => '2. Казань и Татарстан',
-                            3 => '3. Екатеринбург и обл.',
-                            4 => '4. Москва и Московская обл.',
-                            5 => '5. Владимир и обл.',
-                            6 => '6. Тверь и обл.',
-                            7 => '7. Калуга и обл.',
-                            8 => '8. Тула и обл.',
-                            9 => '9. Санкт-Петербург и обл.',
-                            10 => '10. Великий Новгород и обл.',
-                        ])
+                        ->fromModel(RegionIndex::class, 'name', 'index_code') // Динамическая загрузка из RegionIndex
                         ->required(),
-
                     Picture::make('banner.image_path')
                         ->title('Изображение')
-                        ->value(fn ($banner) => is_string($banner) ? $banner : '')
                         ->required(),
                 ]),
-            ])->title('Редактирование заставки')->applyButton('Сохранить'),
+            ])->title('Добавить заставку')->applyButton('Сохранить'),
 
             Layout::modal('editBannerModal', [
                 Layout::rows([
                     Input::make('banner.title')
                         ->title('Заголовок')
                         ->required(),
-
                     Input::make('banner.description')
                         ->title('Описание'),
-
                     Select::make('banner.access_type')
                         ->title('Доступ')
                         ->options([
@@ -145,26 +128,12 @@ class AuthBannerScreen extends Screen
                             'registered' => 'Только зарегистрированные',
                         ])
                         ->required(),
-
                     Select::make('banner.index_code')
                         ->title('Индекс')
-                        ->options([
-                            1 => '1. Ярославль и обл.',
-                            2 => '2. Казань и Татарстан',
-                            3 => '3. Екатеринбург и обл.',
-                            4 => '4. Москва и Московская обл.',
-                            5 => '5. Владимир и обл.',
-                            6 => '6. Тверь и обл.',
-                            7 => '7. Калуга и обл.',
-                            8 => '8. Тула и обл.',
-                            9 => '9. Санкт-Петербург и обл.',
-                            10 => '10. Великий Новгород и обл.',
-                        ])
+                        ->fromModel(RegionIndex::class, 'name', 'index_code') // Динамическая загрузка из RegionIndex
                         ->required(),
-
                     Picture::make('banner.image_path')
                         ->title('Изображение')
-                        ->value(fn ($banner) => is_string($banner) ? $banner : '')
                         ->required(),
                 ]),
             ])->async('asyncGetBanner')->title('Редактирование заставки')->applyButton('Сохранить'),
@@ -176,10 +145,14 @@ class AuthBannerScreen extends Screen
      */
     public function create(Request $request)
     {
-        // Получаем данные из запроса и создаем новую запись в базе
-        AuthBanner::create($request->get('banner'));
+        $bannerData = $request->get('banner');
 
-        // Выводим уведомление
+        // Проверяем и обрабатываем путь к изображению
+        if (isset($bannerData['image_path']) && is_array($bannerData['image_path'])) {
+            $bannerData['image_path'] = $bannerData['image_path'][0] ?? null;
+        }
+
+        AuthBanner::create($bannerData);
         Toast::info('Заставка успешно добавлена.');
     }
 
@@ -192,13 +165,28 @@ class AuthBannerScreen extends Screen
         Toast::info('Заставка удалена.');
     }
 
+    /**
+     * Обновление записи.
+     */
     public function update(Request $request, int $id)
     {
         $banner = AuthBanner::findOrFail($id);
-        $banner->update($request->get('banner'));
+        $bannerData = $request->get('banner');
+
+        // Проверяем и обрабатываем путь к изображению
+        if (isset($bannerData['image_path']) && is_array($bannerData['image_path'])) {
+            $bannerData['image_path'] = $bannerData['image_path'][0] ?? null;
+        } elseif (!isset($bannerData['image_path'])) {
+            unset($bannerData['image_path']); // Оставляем старое значение, если поле не отправлено
+        }
+
+        $banner->update($bannerData);
         Toast::info('Заставка успешно обновлена.');
     }
 
+    /**
+     * Асинхронная загрузка данных для редактирования.
+     */
     public function asyncGetBanner(int $id): array
     {
         $banner = AuthBanner::findOrFail($id);
@@ -208,5 +196,15 @@ class AuthBannerScreen extends Screen
                 'image_path' => $banner->image_path ?? '',
             ]),
         ];
+    }
+
+    /**
+     * Вспомогательный метод для получения названия региона по index_code.
+     */
+    private function getRegionName($indexCode): string
+    {
+        $region = RegionIndex::where('index_code', $indexCode)->first();
+
+        return $region ? "{$region->index_code}. {$region->name}" : "Регион не найден ($indexCode)";
     }
 }

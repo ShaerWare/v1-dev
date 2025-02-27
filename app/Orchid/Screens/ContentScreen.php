@@ -3,6 +3,7 @@
 namespace App\Orchid\Screens;
 
 use App\Models\Content;
+use App\Models\RegionIndex;
 use Illuminate\Http\Request;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\ModalToggle;
@@ -43,12 +44,14 @@ class ContentScreen extends Screen
         return [
             Layout::table('contents', [
                 TD::make('id', 'ID')->sort(),
-                TD::make('title', 'Заголовок')->sort()
+                TD::make('title', 'Заголовок')
+                    ->sort()
                     ->render(fn (Content $content) => e($content->title)),
                 TD::make('access_type', 'Доступ')
                     ->render(fn (Content $content) => $content->access_type === 'all' ? 'Все' : 'Только зарегистрированные'),
                 TD::make('index_code', 'Индекс')
-                    ->render(fn (Content $content) => e($content->index_code)),
+                    ->sort()
+                    ->render(fn (Content $content) => $this->getRegionName($content->index_code)), // Динамическое отображение региона
                 TD::make('region', 'Текст')
                     ->render(fn (Content $content) => e($content->region)),
                 TD::make('image_path', 'Изображение')
@@ -74,11 +77,13 @@ class ContentScreen extends Screen
                     ),
             ]),
 
-            // Модалка для создания контента (без async)
             Layout::modal('createContentModal', [
                 Layout::rows([
-                    Input::make('content.title')->title('Заголовок')->required(),
-                    Input::make('content.description')->title('Описание'),
+                    Input::make('content.title')
+                        ->title('Заголовок')
+                        ->required(),
+                    Input::make('content.description')
+                        ->title('Описание'),
                     Select::make('content.access_type')
                         ->title('Доступ')
                         ->options([
@@ -88,21 +93,13 @@ class ContentScreen extends Screen
                         ->required(),
                     Select::make('content.index_code')
                         ->title('Индекс')
-                        ->options([
-                            1 => '1. Ярославль и обл.',
-                            2 => '2. Казань и Татарстан',
-                            3 => '3. Екатеринбург и обл.',
-                            4 => '4. Москва и Московская обл.',
-                            5 => '5. Владимир и обл.',
-                            6 => '6. Тверь и обл.',
-                            7 => '7. Калуга и обл.',
-                            8 => '8. Тула и обл.',
-                            9 => '9. Санкт-Петербург и обл.',
-                            10 => '10. Великий Новгород и обл.',
-                        ])
+                        ->fromModel(RegionIndex::class, 'name', 'index_code') // Динамическая загрузка из RegionIndex
                         ->required(),
-                    Input::make('content.region')->title('Текст')->required(),
-                    Picture::make('content.image_path')->title('Изображение'),
+                    Input::make('content.region')
+                        ->title('Текст')
+                        ->required(),
+                    Picture::make('content.image_path')
+                        ->title('Изображение'),
                 ]),
             ])->title('Добавить контент')->applyButton('Сохранить'),
 
@@ -111,10 +108,8 @@ class ContentScreen extends Screen
                     Input::make('content.title')
                         ->title('Заголовок')
                         ->required(),
-
                     Input::make('content.description')
                         ->title('Описание'),
-
                     Select::make('content.access_type')
                         ->title('Доступ')
                         ->options([
@@ -122,32 +117,15 @@ class ContentScreen extends Screen
                             'registered' => 'Только зарегистрированные',
                         ])
                         ->required(),
-
                     Select::make('content.index_code')
                         ->title('Индекс')
-                        ->options([
-                            1 => '1. Ярославль и обл.',
-                            2 => '2. Казань и Татарстан',
-                            3 => '3. Екатеринбург и обл.',
-                            4 => '4. Москва и Московская обл.',
-                            5 => '5. Владимир и обл.',
-                            6 => '6. Тверь и обл.',
-                            7 => '7. Калуга и обл.',
-                            8 => '8. Тула и обл.',
-                            9 => '9. Санкт-Петербург и обл.',
-                            10 => '10. Великий Новгород и обл.',
-                        ])
+                        ->fromModel(RegionIndex::class, 'name', 'index_code') // Динамическая загрузка из RegionIndex
                         ->required(),
-
                     Input::make('content.region')
                         ->title('Текст')
                         ->required(),
-
                     Picture::make('content.image_path')
-                        ->title('Изображение')
-                        ->value(fn ($content) => is_string($content ?? null) ? $content : '')
-                    // ->required()
-                    ,
+                        ->title('Изображение'),
                 ]),
             ])->async('asyncGetContent')->title('Редактирование контента')->applyButton('Сохранить'),
         ];
@@ -175,8 +153,7 @@ class ContentScreen extends Screen
         if (isset($contentData['image_path']) && is_array($contentData['image_path'])) {
             $contentData['image_path'] = $contentData['image_path'][0] ?? null;
         } elseif (!isset($contentData['image_path'])) {
-            // Если поле image_path отсутствует в запросе, оставляем старое значение
-            unset($contentData['image_path']);
+            unset($contentData['image_path']); // Оставляем старое значение, если поле не отправлено
         }
 
         $content->update($contentData);
@@ -198,5 +175,15 @@ class ContentScreen extends Screen
                 'image_path' => is_string($content->image_path) ? $content->image_path : '',
             ]),
         ];
+    }
+
+    /**
+     * Вспомогательный метод для получения названия региона по index_code.
+     */
+    private function getRegionName($indexCode): string
+    {
+        $region = RegionIndex::where('index_code', $indexCode)->first();
+
+        return $region ? "{$region->index_code}. {$region->name}" : "Регион не найден ($indexCode)";
     }
 }

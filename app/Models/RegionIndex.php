@@ -10,4 +10,9 @@ class RegionIndex extends Model
     use HasFactory;
 
     protected $fillable = ['index_code', 'name'];
+
+    public function getContent()
+    {
+        // return $this->description; // Или другое нужное поле
+    }
 }

@@ -34,6 +34,10 @@ class PlatformProvider extends OrchidServiceProvider
                 ->title('Некий контент')
                 ->route('platform.auth-banners'),
 
+            Menu::make('Области и регионы')
+                ->icon('globe') // Выбираем подходящий значок
+                ->route('platform.region.indexes'),
+
             // Добавляем пункт для слайдеров
             Menu::make('Слайдеры')
             ->icon('bs.sliders')
